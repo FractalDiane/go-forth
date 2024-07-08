@@ -31,6 +31,14 @@ func (stack *Stack[T]) Top() *T {
 	}
 }
 
+func (stack *Stack[T]) Second() *T {
+	if stack.top != nil && stack.top.previous != nil {
+		return &stack.top.previous.element
+	} else {
+		return nil
+	}
+}
+
 func (stack *Stack[T]) Pop() {
 	if stack.top != nil {
 		stack.top = stack.top.previous
@@ -50,9 +58,26 @@ func (stack *Stack[T]) Array() []T {
 }
 
 func (stack *Stack[T]) SwapTopElements() {
-	var oldTop = stack.top
-	var oldSecond = stack.top.previous
-	stack.top = oldSecond
-	oldTop.previous = oldSecond.previous
-	oldSecond.previous = oldTop
+	if stack.size >= 2 {
+		var oldTop = stack.top
+		var oldSecond = stack.top.previous
+		var oldThird = stack.top.previous.previous
+		stack.top = oldSecond
+		stack.top.previous = oldTop
+		stack.top.previous.previous = oldThird
+	}
+}
+
+func (stack *Stack[T]) RotateTopElements() {
+	if stack.size >= 3 {
+		var oldTop = stack.top
+		var oldSecond = stack.top.previous
+		var oldThird = stack.top.previous.previous
+		var oldFourth = stack.top.previous.previous.previous
+
+		stack.top = oldThird
+		stack.top.previous = oldSecond
+		stack.top.previous.previous = oldTop
+		stack.top.previous.previous.previous = oldFourth
+	}
 }

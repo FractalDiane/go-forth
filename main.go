@@ -79,8 +79,32 @@ func ge(lhs variant.Variant, rhs variant.Variant) variant.Variant {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+func printTop(stack *variantStack) {
+	var top = stack.Top()
+	fmt.Printf("%v", *top)
+	stack.Pop()
+}
+
+func drop(stack *variantStack) {
+	stack.Pop()
+}
+
+func dup(stack *variantStack) {
+	var top = *stack.Top()
+	stack.Push(top)
+}
+
 func swap(stack *variantStack) {
 	stack.SwapTopElements()
+}
+
+func over(stack *variantStack) {
+	var second = *stack.Second()
+	stack.Push(second)
+}
+
+func rotate(stack *variantStack) {
+	stack.RotateTopElements()
 }
 
 func random(stack *variantStack) {
@@ -119,12 +143,56 @@ var unaryOperators = map[string]func(variant.Variant) variant.Variant{
 }
 
 var builtinFunctions = map[string]func(*variantStack){
+	".":     printTop,
+	"drop":  drop,
 	"swap":  swap,
+	"dup":   dup,
+	"over":  over,
+	"rot":   rotate,
 	"rand":  random,
 	"randf": randomf,
 }
 
 var forthStack = stack.Stack[variant.Variant]{}
+var definedWords = make(map[string][]string, 5)
+
+func executeWord(word string) {
+	var wordLower = strings.ToLower(word)
+	if integer, err := strconv.Atoi(word); err == nil {
+		forthStack.Push(variant.ForthInt(integer))
+	} else if float, err := strconv.ParseFloat(word, 64); err == nil {
+		forthStack.Push(variant.ForthFloat(float))
+	} else if strings.HasPrefix(word, `"`) && strings.HasSuffix(word, `"`) {
+		var str = strings.TrimPrefix(word, `"`)
+		str = strings.TrimSuffix(str, `"`)
+		forthStack.Push(variant.ForthString(str))
+	} else if binOpFunction, found := binaryOperators[wordLower]; found {
+		var rhs = *forthStack.Top()
+		forthStack.Pop()
+		var lhs = *forthStack.Top()
+		forthStack.Pop()
+		forthStack.Push(binOpFunction(lhs, rhs))
+	} else if unOpFunction, found := unaryOperators[wordLower]; found {
+		var operand = *forthStack.Top()
+		forthStack.Pop()
+		forthStack.Push(unOpFunction(operand))
+	} else if builtinFunction, found := builtinFunctions[wordLower]; found {
+		builtinFunction(&forthStack)
+	} else if definedWord, found := definedWords[word]; found {
+		for _, subWord := range definedWord {
+			executeWord(subWord)
+		}
+	} else {
+		switch word {
+		case "true":
+			forthStack.Push(variant.ForthBool(true))
+		case "false":
+			forthStack.Push(variant.ForthBool(false))
+		default:
+			forthStack.Push(variant.ForthString(word))
+		}
+	}
+}
 
 func main() {
 	var reader = bufio.NewReader(os.Stdin)
@@ -142,39 +210,14 @@ func main() {
 			return !inQuotes && unicode.IsSpace(r)
 		})
 
-		for _, word := range inputSplit {
-			if integer, err := strconv.Atoi(word); err == nil {
-				forthStack.Push(variant.ForthInt(integer))
-			} else if float, err := strconv.ParseFloat(word, 64); err == nil {
-				forthStack.Push(variant.ForthFloat(float))
-			} else if strings.HasPrefix(word, "\"") && strings.HasSuffix(word, "\"") {
-				var str = strings.TrimPrefix(word, "\"")
-				str = strings.TrimSuffix(str, "\"")
-				forthStack.Push(variant.ForthString(str))
-			} else if binOpFunction, found := binaryOperators[word]; found {
-				var rhs = *forthStack.Top()
-				forthStack.Pop()
-				var lhs = *forthStack.Top()
-				forthStack.Pop()
-				forthStack.Push(binOpFunction(lhs, rhs))
-			} else if unOpFunction, found := unaryOperators[word]; found {
-				var operand = *forthStack.Top()
-				forthStack.Pop()
-				forthStack.Push(unOpFunction(operand))
-			} else if builtinFunction, found := builtinFunctions[word]; found {
-				builtinFunction(&forthStack)
-			} else {
-				switch word {
-				case "true":
-					forthStack.Push(variant.ForthBool(true))
-				case "false":
-					forthStack.Push(variant.ForthBool(false))
-				default:
-					forthStack.Push(variant.ForthString(word))
-				}
+		if len(inputSplit) >= 4 && inputSplit[0] == ":" && inputSplit[len(inputSplit)-1] == ";" {
+			definedWords[inputSplit[1]] = inputSplit[2 : len(inputSplit)-1]
+		} else {
+			for _, word := range inputSplit {
+				executeWord(word)
 			}
 		}
 
-		fmt.Printf("%d: %v\n", forthStack.Size(), forthStack.Array())
+		//fmt.Printf("%d: %v\n", forthStack.Size(), forthStack.Array())
 	}
 }
