@@ -1,6 +1,9 @@
 package variant
 
-import "math"
+import (
+	"log"
+	"math"
+)
 
 type Variant interface {
 	Add(other Variant) Variant
@@ -50,7 +53,8 @@ func (b ForthBool) Add(other Variant) Variant {
 
 		return asFloat + otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '+' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -75,7 +79,8 @@ func (b ForthBool) Sub(other Variant) Variant {
 
 		return asFloat - otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '-' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -102,16 +107,19 @@ func (b ForthBool) Mul(other Variant) Variant {
 
 		return asFloat * otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '*' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
 func (b ForthBool) Div(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '/' operands (%v and %v)", b, other)
+	return nil
 }
 
 func (b ForthBool) Mod(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '%%' operands (%v and %v)", b, other)
+	return nil
 }
 
 func (b ForthBool) And(other Variant) Variant {
@@ -123,7 +131,8 @@ func (b ForthBool) And(other Variant) Variant {
 	case ForthFloat:
 		return b && (otherCast != 0.0)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'and' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -136,7 +145,8 @@ func (b ForthBool) Or(other Variant) Variant {
 	case ForthFloat:
 		return b || (otherCast != 0.0)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'or' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -149,7 +159,8 @@ func (b ForthBool) Xor(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(b != (otherCast != 0.0))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'xor' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -166,7 +177,8 @@ func (b ForthBool) Eq(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(b == (otherCast != 0.0))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '==' operands (%v and %v)", b, other)
+		return nil
 	}
 }
 
@@ -175,19 +187,23 @@ func (b ForthBool) Ne(other Variant) Variant {
 }
 
 func (b ForthBool) Lt(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '<' operands (%v and %v)", b, other)
+	return nil
 }
 
 func (b ForthBool) Gt(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '>' operands (%v and %v)", b, other)
+	return nil
 }
 
 func (b ForthBool) Le(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '<=' operands (%v and %v)", b, other)
+	return nil
 }
 
 func (b ForthBool) Ge(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '>=' operands (%v and %v)", b, other)
+	return nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +222,8 @@ func (i ForthInt) Add(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(i) + otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '+' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -224,7 +241,8 @@ func (i ForthInt) Sub(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(i) - otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '-' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -241,7 +259,8 @@ func (i ForthInt) Mul(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(i) * otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '*' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -252,7 +271,8 @@ func (i ForthInt) Div(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(i) / otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '/' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -263,7 +283,8 @@ func (i ForthInt) Mod(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(math.Mod(float64(i), float64(otherCast)))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '%%' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -272,7 +293,8 @@ func (i ForthInt) And(other Variant) Variant {
 	case ForthInt:
 		return i & otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'and' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -281,7 +303,8 @@ func (i ForthInt) Or(other Variant) Variant {
 	case ForthInt:
 		return i | otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'or' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -290,7 +313,8 @@ func (i ForthInt) Xor(other Variant) Variant {
 	case ForthInt:
 		return i ^ otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid 'xor' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -305,7 +329,8 @@ func (i ForthInt) Eq(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i == ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '==' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -316,7 +341,8 @@ func (i ForthInt) Ne(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i != ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '!=' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -327,7 +353,8 @@ func (i ForthInt) Lt(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i < ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -338,7 +365,8 @@ func (i ForthInt) Gt(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i > ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -349,7 +377,8 @@ func (i ForthInt) Le(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i <= ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<=' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -360,7 +389,8 @@ func (i ForthInt) Ge(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(i >= ForthInt(otherCast))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>=' operands (%v and %v)", i, other)
+		return nil
 	}
 }
 
@@ -380,7 +410,8 @@ func (f ForthFloat) Add(other Variant) Variant {
 	case ForthFloat:
 		return f + otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '+' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -398,7 +429,8 @@ func (f ForthFloat) Sub(other Variant) Variant {
 	case ForthFloat:
 		return f - otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '-' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -415,7 +447,8 @@ func (f ForthFloat) Mul(other Variant) Variant {
 	case ForthFloat:
 		return f * otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '*' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -426,7 +459,8 @@ func (f ForthFloat) Div(other Variant) Variant {
 	case ForthFloat:
 		return f / otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '/' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -437,24 +471,29 @@ func (f ForthFloat) Mod(other Variant) Variant {
 	case ForthFloat:
 		return ForthFloat(math.Mod(float64(f), float64(otherCast)))
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '%%' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
 func (f ForthFloat) And(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'and' operands (%v and %v)", f, other)
+	return nil
 }
 
 func (f ForthFloat) Or(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'or' operands (%v and %v)", f, other)
+	return nil
 }
 
 func (f ForthFloat) Xor(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'xor' operands (%v and %v)", f, other)
+	return nil
 }
 
 func (f ForthFloat) Not() Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'not' operand (%v)", f)
+	return nil
 }
 
 func (f ForthFloat) Eq(other Variant) Variant {
@@ -464,7 +503,8 @@ func (f ForthFloat) Eq(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f == otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '==' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -475,7 +515,8 @@ func (f ForthFloat) Ne(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f != otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '!=' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -486,7 +527,8 @@ func (f ForthFloat) Lt(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f < otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -497,7 +539,8 @@ func (f ForthFloat) Gt(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f > otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -508,7 +551,8 @@ func (f ForthFloat) Le(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f <= otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<=' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -519,7 +563,8 @@ func (f ForthFloat) Ge(other Variant) Variant {
 	case ForthFloat:
 		return ForthBool(f >= otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>=' operands (%v and %v)", f, other)
+		return nil
 	}
 }
 
@@ -530,40 +575,49 @@ func (s ForthString) Add(other Variant) Variant {
 	case ForthString:
 		return s + otherCast
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '+' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
 func (s ForthString) Sub(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '-' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Mul(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '*' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Div(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '/' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Mod(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid '%%' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) And(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'and' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Or(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'or' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Xor(other Variant) Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'xor' operands (%v and %v)", s, other)
+	return nil
 }
 
 func (s ForthString) Not() Variant {
-	panic("test")
+	log.Fatalf("Error: Invalid 'not' operand (%v)", s)
+	return nil
 }
 
 func (s ForthString) Eq(other Variant) Variant {
@@ -571,7 +625,8 @@ func (s ForthString) Eq(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s == otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '==' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
@@ -580,7 +635,8 @@ func (s ForthString) Ne(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s != otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '!=' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
@@ -589,7 +645,8 @@ func (s ForthString) Lt(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s < otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
@@ -598,7 +655,8 @@ func (s ForthString) Gt(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s > otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
@@ -607,7 +665,8 @@ func (s ForthString) Le(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s <= otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '<=' operands (%v and %v)", s, other)
+		return nil
 	}
 }
 
@@ -616,6 +675,7 @@ func (s ForthString) Ge(other Variant) Variant {
 	case ForthString:
 		return ForthBool(s >= otherCast)
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid '>=' operands (%v and %v)", s, other)
+		return nil
 	}
 }

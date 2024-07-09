@@ -23,6 +23,10 @@ func (stack *Stack[T]) Size() uint {
 	return stack.size
 }
 
+func (stack *Stack[T]) IsEmpty() bool {
+	return stack.size == 0
+}
+
 func (stack *Stack[T]) Top() *T {
 	if stack.top != nil {
 		return &stack.top.element

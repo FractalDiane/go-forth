@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"math/rand/v2"
 	"os"
 	"strconv"
@@ -86,25 +87,37 @@ func ge(lhs variant.Variant, rhs variant.Variant) variant.Variant {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 func printTop(program *forthProgram) {
-	var top = program.forthStack.Top()
-	fmt.Printf("%v", *top)
-	program.forthStack.Pop()
+	if !program.forthStack.IsEmpty() {
+		var top = program.forthStack.Top()
+		fmt.Printf("%v", *top)
+		program.forthStack.Pop()
+	} else {
+		log.Fatal("Error: Attempted to print, but the stack is empty")
+	}
 }
 
 func printTopLn(program *forthProgram) {
-	var top = program.forthStack.Top()
-	fmt.Printf("%v\n", *top)
-	program.forthStack.Pop()
+	if !program.forthStack.IsEmpty() {
+		var top = program.forthStack.Top()
+		fmt.Printf("%v\n", *top)
+		program.forthStack.Pop()
+	} else {
+		log.Fatal("Error: Attempted to print, but the stack is empty")
+	}
 }
 
 func emitTop(program *forthProgram) {
-	var top = program.forthStack.Top()
-	switch topCast := (*top).(type) {
-	case variant.ForthInt:
-		fmt.Printf("%c", rune(topCast))
-		program.forthStack.Pop()
-	default:
-		panic("test")
+	if !program.forthStack.IsEmpty() {
+		var top = program.forthStack.Top()
+		switch topCast := (*top).(type) {
+		case variant.ForthInt:
+			fmt.Printf("%c", rune(topCast))
+			program.forthStack.Pop()
+		default:
+			log.Fatal("Error: emit failed to convert its argument")
+		}
+	} else {
+		log.Fatal("Error: Attempted to emit, but the stack is empty")
 	}
 }
 
@@ -222,7 +235,7 @@ func executeWord(program *forthProgram, word string) {
 		case "false":
 			program.forthStack.Push(variant.ForthBool(false))
 		default:
-			program.forthStack.Push(variant.ForthString(word))
+			log.Fatalf("Error: Unrecognized word '%s'", word)
 		}
 	}
 }
@@ -243,6 +256,7 @@ func executeWordLine(program *forthProgram, wordLine string) {
 	if len(inputSplit) >= 4 && inputSplit[0] == ":" && inputSplit[len(inputSplit)-1] == ";" {
 		program.definedWords[inputSplit[1]] = inputSplit[2 : len(inputSplit)-1]
 	} else {
+		program.wordIndex = 0
 		for program.wordIndex < uint(len(inputSplit)) {
 			var thisWord = inputSplit[program.wordIndex]
 			executeWord(program, thisWord)
@@ -269,9 +283,9 @@ func main() {
 				executeWordLine(&program, scanner.Text())
 			}
 		} else {
-			panic("test")
+			log.Fatalf("Error: Can't open file %s: %v", os.Args[1], err)
 		}
 	default:
-		panic("test")
+		log.Fatalf("Error: Invalid argument count to go-forth (%d)", len(os.Args))
 	}
 }
