@@ -23,6 +23,8 @@ type Variant interface {
 	Gt(other Variant) Variant
 	Le(other Variant) Variant
 	Ge(other Variant) Variant
+
+	AsBool() bool
 }
 
 type ForthBool bool
@@ -204,6 +206,10 @@ func (b ForthBool) Le(other Variant) Variant {
 func (b ForthBool) Ge(other Variant) Variant {
 	log.Fatalf("Error: Invalid '>=' operands (%v and %v)", b, other)
 	return nil
+}
+
+func (b ForthBool) AsBool() bool {
+	return bool(b)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -394,6 +400,10 @@ func (i ForthInt) Ge(other Variant) Variant {
 	}
 }
 
+func (i ForthInt) AsBool() bool {
+	return i != 0
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (f ForthFloat) Add(other Variant) Variant {
@@ -568,6 +578,10 @@ func (f ForthFloat) Ge(other Variant) Variant {
 	}
 }
 
+func (f ForthFloat) AsBool() bool {
+	return f != 0.0
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (s ForthString) Add(other Variant) Variant {
@@ -678,4 +692,8 @@ func (s ForthString) Ge(other Variant) Variant {
 		log.Fatalf("Error: Invalid '>=' operands (%v and %v)", s, other)
 		return nil
 	}
+}
+
+func (s ForthString) AsBool() bool {
+	return len(s) != 0
 }

@@ -7,7 +7,7 @@ type node[T any] struct {
 
 type Stack[T any] struct {
 	top  *node[T]
-	size uint
+	size int
 }
 
 func (stack *Stack[T]) Push(element T) {
@@ -19,7 +19,7 @@ func (stack *Stack[T]) Push(element T) {
 	stack.size++
 }
 
-func (stack *Stack[T]) Size() uint {
+func (stack *Stack[T]) Size() int {
 	return stack.size
 }
 
@@ -35,6 +35,15 @@ func (stack *Stack[T]) Top() *T {
 	}
 }
 
+func (stack *Stack[T]) Peek(indexFromTop int) *T {
+	var currentNode = stack.top
+	for i := 0; i < indexFromTop; i++ {
+		currentNode = currentNode.previous
+	}
+
+	return &currentNode.element
+}
+
 func (stack *Stack[T]) Second() *T {
 	if stack.top != nil && stack.top.previous != nil {
 		return &stack.top.previous.element
@@ -48,6 +57,11 @@ func (stack *Stack[T]) Pop() {
 		stack.top = stack.top.previous
 		stack.size--
 	}
+}
+
+func (stack *Stack[T]) Clear() {
+	stack.top = nil
+	stack.size = 0
 }
 
 func (stack *Stack[T]) Array() []T {
@@ -80,8 +94,8 @@ func (stack *Stack[T]) RotateTopElements() {
 		var oldFourth = stack.top.previous.previous.previous
 
 		stack.top = oldThird
-		stack.top.previous = oldSecond
-		stack.top.previous.previous = oldTop
+		stack.top.previous = oldTop
+		stack.top.previous.previous = oldSecond
 		stack.top.previous.previous.previous = oldFourth
 	}
 }
