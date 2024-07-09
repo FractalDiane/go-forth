@@ -12,6 +12,11 @@ import (
 	"goforth/variant"
 )
 
+type branchEntry struct {
+	condition bool
+	inElse    bool
+}
+
 type loopEntry struct {
 	isDoLoop     bool
 	loopIndex    int
@@ -24,8 +29,9 @@ type ForthProgram struct {
 	forthStack   stack.Stack[variant.Variant]
 	definedWords map[string][]string
 
-	wordIndex int
-	loopStack stack.Stack[loopEntry]
+	wordIndex   int
+	loopStack   stack.Stack[loopEntry]
+	branchStack stack.Stack[branchEntry]
 }
 
 func NewForthProgram() ForthProgram {
@@ -180,6 +186,20 @@ func randomf(program *ForthProgram) {
 	program.forthStack.Push(variant.ForthFloat(value))
 }
 
+func beginIf(program *ForthProgram) {
+	var condition = (*program.StackTop()).AsBool()
+	program.StackPop()
+	program.branchStack.Push(branchEntry{condition, false})
+}
+
+func beginElse(program *ForthProgram) {
+	program.branchStack.Top().inElse = true
+}
+
+func endIf(program *ForthProgram) {
+	program.branchStack.Pop()
+}
+
 func beginLoop(program *ForthProgram) {
 	program.loopStack.Push(loopEntry{false, program.wordIndex, 0, 0, 0})
 }
@@ -240,7 +260,7 @@ func loopIndex2(program *ForthProgram) {
 	if topEntry != nil && topEntry.isDoLoop {
 		program.forthStack.Push(variant.ForthInt(topEntry.currentValue))
 	} else {
-		log.Fatalf("Error: 'i' has no corresponding loop to query")
+		log.Fatalf("Error: 'j' has no corresponding loop to query")
 	}
 }
 
@@ -249,7 +269,7 @@ func loopIndex3(program *ForthProgram) {
 	if topEntry != nil && topEntry.isDoLoop {
 		program.forthStack.Push(variant.ForthInt(topEntry.currentValue))
 	} else {
-		log.Fatalf("Error: 'i' has no corresponding loop to query")
+		log.Fatalf("Error: 'k' has no corresponding loop to query")
 	}
 }
 
@@ -290,6 +310,10 @@ var builtinFunctions = map[string]func(*ForthProgram){
 	"rand":  random,
 	"randf": randomf,
 
+	"if":   beginIf,
+	"else": beginElse,
+	"then": endIf,
+
 	"begin": beginLoop,
 	"again": loopAgain,
 	"until": loopUntil,
@@ -302,38 +326,40 @@ var builtinFunctions = map[string]func(*ForthProgram){
 
 func ExecuteWord(program *ForthProgram, word string) {
 	var wordLower = strings.ToLower(word)
-	if integer, err := strconv.Atoi(word); err == nil {
-		program.forthStack.Push(variant.ForthInt(integer))
-	} else if float, err := strconv.ParseFloat(word, 64); err == nil {
-		program.forthStack.Push(variant.ForthFloat(float))
-	} else if strings.HasPrefix(word, `"`) && strings.HasSuffix(word, `"`) {
-		var str = strings.TrimPrefix(word, `"`)
-		str = strings.TrimSuffix(str, `"`)
-		program.forthStack.Push(variant.ForthString(str))
-	} else if binOpFunction, found := binaryOperators[wordLower]; found {
-		var rhs = *program.forthStack.Top()
-		program.forthStack.Pop()
-		var lhs = *program.forthStack.Top()
-		program.forthStack.Pop()
-		program.forthStack.Push(binOpFunction(lhs, rhs))
-	} else if unOpFunction, found := unaryOperators[wordLower]; found {
-		var operand = *program.forthStack.Top()
-		program.forthStack.Pop()
-		program.forthStack.Push(unOpFunction(operand))
-	} else if builtinFunction, found := builtinFunctions[wordLower]; found {
-		builtinFunction(program)
-	} else if definedWord, found := program.definedWords[word]; found {
-		for _, subWord := range definedWord {
-			ExecuteWord(program, subWord)
-		}
-	} else {
-		switch word {
-		case "true":
-			program.forthStack.Push(variant.ForthBool(true))
-		case "false":
-			program.forthStack.Push(variant.ForthBool(false))
-		default:
-			log.Fatalf("Error: Unrecognized word '%s'", word)
+	if program.branchStack.IsEmpty() || program.branchStack.Top().condition != program.branchStack.Top().inElse || wordLower == "else" || wordLower == "then" {
+		if integer, err := strconv.Atoi(word); err == nil {
+			program.forthStack.Push(variant.ForthInt(integer))
+		} else if float, err := strconv.ParseFloat(word, 64); err == nil {
+			program.forthStack.Push(variant.ForthFloat(float))
+		} else if strings.HasPrefix(word, `"`) && strings.HasSuffix(word, `"`) {
+			var str = strings.TrimPrefix(word, `"`)
+			str = strings.TrimSuffix(str, `"`)
+			program.forthStack.Push(variant.ForthString(str))
+		} else if binOpFunction, found := binaryOperators[wordLower]; found {
+			var rhs = *program.forthStack.Top()
+			program.forthStack.Pop()
+			var lhs = *program.forthStack.Top()
+			program.forthStack.Pop()
+			program.forthStack.Push(binOpFunction(lhs, rhs))
+		} else if unOpFunction, found := unaryOperators[wordLower]; found {
+			var operand = *program.forthStack.Top()
+			program.forthStack.Pop()
+			program.forthStack.Push(unOpFunction(operand))
+		} else if builtinFunction, found := builtinFunctions[wordLower]; found {
+			builtinFunction(program)
+		} else if definedWord, found := program.definedWords[word]; found {
+			for _, subWord := range definedWord {
+				ExecuteWord(program, subWord)
+			}
+		} else {
+			switch word {
+			case "true":
+				program.forthStack.Push(variant.ForthBool(true))
+			case "false":
+				program.forthStack.Push(variant.ForthBool(false))
+			default:
+				log.Fatalf("Error: Unrecognized word '%s'", word)
+			}
 		}
 	}
 }

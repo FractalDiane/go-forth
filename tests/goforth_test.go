@@ -91,6 +91,18 @@ func TestRot(t *testing.T) {
 	}
 }
 
+func TestIfTrue(t *testing.T) {
+	if passed, err := runTestLine(`1 if "true" else "false" then`, variant.ForthString("true")); !passed {
+		t.Fatal(err)
+	}
+}
+
+func TestIfFalse(t *testing.T) {
+	if passed, err := runTestLine(`0 if "true" else "false" then`, variant.ForthString("false")); !passed {
+		t.Fatal(err)
+	}
+}
+
 func TestDoLoop(t *testing.T) {
 	if passed, err := runTestLine("5 0 do i loop", variant.ForthInt(4), variant.ForthInt(3), variant.ForthInt(2), variant.ForthInt(1), variant.ForthInt(0)); !passed {
 		t.Fatal(err)
