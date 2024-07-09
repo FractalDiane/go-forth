@@ -13,7 +13,13 @@ import (
 	"goforth/variant"
 )
 
-type variantStack = stack.Stack[variant.Variant]
+type forthProgram struct {
+	forthStack   stack.Stack[variant.Variant]
+	definedWords map[string][]string
+
+	wordIndex uint
+	loopStack stack.Stack[uint]
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -79,59 +85,67 @@ func ge(lhs variant.Variant, rhs variant.Variant) variant.Variant {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-func printTop(stack *variantStack) {
-	var top = stack.Top()
+func printTop(program *forthProgram) {
+	var top = program.forthStack.Top()
 	fmt.Printf("%v", *top)
-	stack.Pop()
+	program.forthStack.Pop()
 }
 
-func printTopLn(stack *variantStack) {
-	var top = stack.Top()
+func printTopLn(program *forthProgram) {
+	var top = program.forthStack.Top()
 	fmt.Printf("%v\n", *top)
-	stack.Pop()
+	program.forthStack.Pop()
 }
 
-func emitTop(stack *variantStack) {
-	var top = stack.Top()
+func emitTop(program *forthProgram) {
+	var top = program.forthStack.Top()
 	switch topCast := (*top).(type) {
 	case variant.ForthInt:
 		fmt.Printf("%c", rune(topCast))
-		stack.Pop()
+		program.forthStack.Pop()
 	default:
 		panic("test")
 	}
 }
 
-func drop(stack *variantStack) {
-	stack.Pop()
+func drop(program *forthProgram) {
+	program.forthStack.Pop()
 }
 
-func dup(stack *variantStack) {
-	var top = *stack.Top()
-	stack.Push(top)
+func dup(program *forthProgram) {
+	var top = *program.forthStack.Top()
+	program.forthStack.Push(top)
 }
 
-func swap(stack *variantStack) {
-	stack.SwapTopElements()
+func swap(program *forthProgram) {
+	program.forthStack.SwapTopElements()
 }
 
-func over(stack *variantStack) {
-	var second = *stack.Second()
-	stack.Push(second)
+func over(program *forthProgram) {
+	var second = *program.forthStack.Second()
+	program.forthStack.Push(second)
 }
 
-func rotate(stack *variantStack) {
-	stack.RotateTopElements()
+func rotate(program *forthProgram) {
+	program.forthStack.RotateTopElements()
 }
 
-func random(stack *variantStack) {
+func random(program *forthProgram) {
 	var value = rand.Int64()
-	stack.Push(variant.ForthInt(value))
+	program.forthStack.Push(variant.ForthInt(value))
 }
 
-func randomf(stack *variantStack) {
+func randomf(program *forthProgram) {
 	var value = rand.Float64()
-	stack.Push(variant.ForthFloat(value))
+	program.forthStack.Push(variant.ForthFloat(value))
+}
+
+func beginLoop(program *forthProgram) {
+	program.loopStack.Push(program.wordIndex)
+}
+
+func loopAgain(program *forthProgram) {
+	program.wordIndex = *program.loopStack.Top()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,7 +173,7 @@ var unaryOperators = map[string]func(variant.Variant) variant.Variant{
 	"not": not,
 }
 
-var builtinFunctions = map[string]func(*variantStack){
+var builtinFunctions = map[string]func(*forthProgram){
 	".":     printTop,
 	",":     printTopLn,
 	"emit":  emitTop,
@@ -170,73 +184,94 @@ var builtinFunctions = map[string]func(*variantStack){
 	"rot":   rotate,
 	"rand":  random,
 	"randf": randomf,
+
+	"begin": beginLoop,
+	"again": loopAgain,
 }
 
-var forthStack = stack.Stack[variant.Variant]{}
-var definedWords = make(map[string][]string, 5)
-
-func executeWord(word string) {
+func executeWord(program *forthProgram, word string) {
 	var wordLower = strings.ToLower(word)
 	if integer, err := strconv.Atoi(word); err == nil {
-		forthStack.Push(variant.ForthInt(integer))
+		program.forthStack.Push(variant.ForthInt(integer))
 	} else if float, err := strconv.ParseFloat(word, 64); err == nil {
-		forthStack.Push(variant.ForthFloat(float))
+		program.forthStack.Push(variant.ForthFloat(float))
 	} else if strings.HasPrefix(word, `"`) && strings.HasSuffix(word, `"`) {
 		var str = strings.TrimPrefix(word, `"`)
 		str = strings.TrimSuffix(str, `"`)
-		forthStack.Push(variant.ForthString(str))
+		program.forthStack.Push(variant.ForthString(str))
 	} else if binOpFunction, found := binaryOperators[wordLower]; found {
-		var rhs = *forthStack.Top()
-		forthStack.Pop()
-		var lhs = *forthStack.Top()
-		forthStack.Pop()
-		forthStack.Push(binOpFunction(lhs, rhs))
+		var rhs = *program.forthStack.Top()
+		program.forthStack.Pop()
+		var lhs = *program.forthStack.Top()
+		program.forthStack.Pop()
+		program.forthStack.Push(binOpFunction(lhs, rhs))
 	} else if unOpFunction, found := unaryOperators[wordLower]; found {
-		var operand = *forthStack.Top()
-		forthStack.Pop()
-		forthStack.Push(unOpFunction(operand))
+		var operand = *program.forthStack.Top()
+		program.forthStack.Pop()
+		program.forthStack.Push(unOpFunction(operand))
 	} else if builtinFunction, found := builtinFunctions[wordLower]; found {
-		builtinFunction(&forthStack)
-	} else if definedWord, found := definedWords[word]; found {
+		builtinFunction(program)
+	} else if definedWord, found := program.definedWords[word]; found {
 		for _, subWord := range definedWord {
-			executeWord(subWord)
+			executeWord(program, subWord)
 		}
 	} else {
 		switch word {
 		case "true":
-			forthStack.Push(variant.ForthBool(true))
+			program.forthStack.Push(variant.ForthBool(true))
 		case "false":
-			forthStack.Push(variant.ForthBool(false))
+			program.forthStack.Push(variant.ForthBool(false))
 		default:
-			forthStack.Push(variant.ForthString(word))
+			program.forthStack.Push(variant.ForthString(word))
+		}
+	}
+}
+
+func executeWordLine(program *forthProgram, wordLine string) {
+	wordLine = strings.TrimSpace(wordLine)
+
+	var inQuotes = false
+	var inputSplit = strings.FieldsFunc(wordLine, func(r rune) bool {
+		if r == '"' {
+			inQuotes = !inQuotes
+			return false
+		}
+
+		return !inQuotes && unicode.IsSpace(r)
+	})
+
+	if len(inputSplit) >= 4 && inputSplit[0] == ":" && inputSplit[len(inputSplit)-1] == ";" {
+		program.definedWords[inputSplit[1]] = inputSplit[2 : len(inputSplit)-1]
+	} else {
+		for program.wordIndex < uint(len(inputSplit)) {
+			var thisWord = inputSplit[program.wordIndex]
+			executeWord(program, thisWord)
+			program.wordIndex++
 		}
 	}
 }
 
 func main() {
-	var reader = bufio.NewReader(os.Stdin)
-	for {
-		var input, _ = reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+	var program forthProgram
+	program.definedWords = make(map[string][]string, 5)
 
-		var inQuotes = false
-		var inputSplit = strings.FieldsFunc(input, func(r rune) bool {
-			if r == '"' {
-				inQuotes = !inQuotes
-				return false
-			}
-
-			return !inQuotes && unicode.IsSpace(r)
-		})
-
-		if len(inputSplit) >= 4 && inputSplit[0] == ":" && inputSplit[len(inputSplit)-1] == ";" {
-			definedWords[inputSplit[1]] = inputSplit[2 : len(inputSplit)-1]
-		} else {
-			for _, word := range inputSplit {
-				executeWord(word)
-			}
+	switch len(os.Args) {
+	case 1:
+		var reader = bufio.NewReader(os.Stdin)
+		for {
+			var input, _ = reader.ReadString('\n')
+			executeWordLine(&program, input)
 		}
-
-		//fmt.Printf("%d: %v\n", forthStack.Size(), forthStack.Array())
+	case 2:
+		if infile, err := os.Open(os.Args[1]); err == nil {
+			var scanner = bufio.NewScanner(infile)
+			for scanner.Scan() {
+				executeWordLine(&program, scanner.Text())
+			}
+		} else {
+			panic("test")
+		}
+	default:
+		panic("test")
 	}
 }
