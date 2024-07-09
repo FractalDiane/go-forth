@@ -58,23 +58,23 @@ func eq(lhs variant.Variant, rhs variant.Variant) variant.Variant {
 }
 
 func ne(lhs variant.Variant, rhs variant.Variant) variant.Variant {
-	return lhs.Eq(rhs)
+	return lhs.Ne(rhs)
 }
 
 func lt(lhs variant.Variant, rhs variant.Variant) variant.Variant {
-	return lhs.Eq(rhs)
+	return lhs.Lt(rhs)
 }
 
 func gt(lhs variant.Variant, rhs variant.Variant) variant.Variant {
-	return lhs.Eq(rhs)
+	return lhs.Gt(rhs)
 }
 
 func le(lhs variant.Variant, rhs variant.Variant) variant.Variant {
-	return lhs.Eq(rhs)
+	return lhs.Le(rhs)
 }
 
 func ge(lhs variant.Variant, rhs variant.Variant) variant.Variant {
-	return lhs.Eq(rhs)
+	return lhs.Ge(rhs)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,23 @@ func printTop(stack *variantStack) {
 	var top = stack.Top()
 	fmt.Printf("%v", *top)
 	stack.Pop()
+}
+
+func printTopLn(stack *variantStack) {
+	var top = stack.Top()
+	fmt.Printf("%v\n", *top)
+	stack.Pop()
+}
+
+func emitTop(stack *variantStack) {
+	var top = stack.Top()
+	switch topCast := (*top).(type) {
+	case variant.ForthInt:
+		fmt.Printf("%c", rune(topCast))
+		stack.Pop()
+	default:
+		panic("test")
+	}
 }
 
 func drop(stack *variantStack) {
@@ -144,6 +161,8 @@ var unaryOperators = map[string]func(variant.Variant) variant.Variant{
 
 var builtinFunctions = map[string]func(*variantStack){
 	".":     printTop,
+	",":     printTopLn,
+	"emit":  emitTop,
 	"drop":  drop,
 	"swap":  swap,
 	"dup":   dup,

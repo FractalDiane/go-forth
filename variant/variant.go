@@ -32,16 +32,51 @@ func (b ForthBool) Add(other Variant) Variant {
 	case ForthBool:
 		return b || otherCast
 	case ForthInt:
-		return b || (otherCast != 0)
+		var asInt ForthInt
+		if b {
+			asInt = 1
+		} else {
+			asInt = 0
+		}
+
+		return asInt + otherCast
 	case ForthFloat:
-		return b || (otherCast != 0.0)
+		var asFloat ForthFloat
+		if b {
+			asFloat = 1.0
+		} else {
+			asFloat = 0.0
+		}
+
+		return asFloat + otherCast
 	default:
 		panic("test")
 	}
 }
 
 func (b ForthBool) Sub(other Variant) Variant {
-	panic("test")
+	switch otherCast := other.(type) {
+	case ForthInt:
+		var asInt ForthInt
+		if b {
+			asInt = 1
+		} else {
+			asInt = 0
+		}
+
+		return asInt - otherCast
+	case ForthFloat:
+		var asFloat ForthFloat
+		if b {
+			asFloat = 1.0
+		} else {
+			asFloat = 0.0
+		}
+
+		return asFloat - otherCast
+	default:
+		panic("test")
+	}
 }
 
 func (b ForthBool) Mul(other Variant) Variant {
@@ -49,9 +84,23 @@ func (b ForthBool) Mul(other Variant) Variant {
 	case ForthBool:
 		return b && otherCast
 	case ForthInt:
-		return b && (otherCast != 0)
+		var asInt ForthInt
+		if b {
+			asInt = 1
+		} else {
+			asInt = 0
+		}
+
+		return asInt * otherCast
 	case ForthFloat:
-		return b && (otherCast != 0.0)
+		var asFloat ForthFloat
+		if b {
+			asFloat = 1.0
+		} else {
+			asFloat = 0.0
+		}
+
+		return asFloat * otherCast
 	default:
 		panic("test")
 	}
@@ -66,11 +115,29 @@ func (b ForthBool) Mod(other Variant) Variant {
 }
 
 func (b ForthBool) And(other Variant) Variant {
-	return b.Mul(other)
+	switch otherCast := other.(type) {
+	case ForthBool:
+		return b && otherCast
+	case ForthInt:
+		return b && (otherCast != 0)
+	case ForthFloat:
+		return b && (otherCast != 0.0)
+	default:
+		panic("test")
+	}
 }
 
 func (b ForthBool) Or(other Variant) Variant {
-	return b.Add(other)
+	switch otherCast := other.(type) {
+	case ForthBool:
+		return b || otherCast
+	case ForthInt:
+		return b || (otherCast != 0)
+	case ForthFloat:
+		return b || (otherCast != 0.0)
+	default:
+		panic("test")
+	}
 }
 
 func (b ForthBool) Xor(other Variant) Variant {
